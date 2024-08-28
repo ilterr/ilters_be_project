@@ -28,7 +28,7 @@ describe("Error handling check", () => {
       .get("/api/nonexistent")
       .expect(404)
       .then((response) => {
-        expect(response.res.statusMessage).toBe("Not Found");
+        expect(response.body.msg).toBe("Not Found");
       });
   });
 });
@@ -57,6 +57,24 @@ describe("/api/articles/:article_id", () => {
         expect(articles[0]).toHaveProperty("created_at");
         expect(articles[0]).toHaveProperty("votes");
         expect(articles[0]).toHaveProperty("article_img_url");
+      });
+  });
+});
+describe("Error handling for /api/articles/:article_id", () => {
+  test("400:Attempting to GET a resource by an invalid ID ", () => {
+    return request(app)
+      .get("/api/articles/notAnId")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Invalid input");
+      });
+  });
+  test("404: Attempting to GET a resource by a valid ID that does not exist in the database", () => {
+    return request(app)
+      .get("/api/articles/999999")
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Not Found");
       });
   });
 });

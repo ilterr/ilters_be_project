@@ -1,4 +1,4 @@
-const articles = require("./data/test-data/articles");
+// const articles = require("./data/test-data/articles");
 const { selectTopics, readDataFile, getArticleById } = require("./models");
 
 exports.getAllTopics = (req, res) => {
@@ -17,9 +17,13 @@ exports.getDocumentation = (req, res, next) => {
     });
 };
 
-exports.getArticle = (req, res) => {
-  const param = req.params.article_id;
-  getArticleById(param).then((article) => {
-    res.status(200).send({ article });
-  });
+exports.getArticle = (req, res, next) => {
+  const { article_id } = req.params;
+  getArticleById(article_id)
+    .then((article) => {
+      res.status(200).send({ article });
+    })
+    .catch((err) => {
+      next(err);
+    });
 };

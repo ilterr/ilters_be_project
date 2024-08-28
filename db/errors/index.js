@@ -1,14 +1,18 @@
 exports.handleCustomErrors = (err, req, res, next) => {
+  // console.log(err, "<-- ended up in handleCustomErrors");
   if (err.status && err.msg) {
-    console.log("<---- custom err");
     res.status(err.status).send({ msg: err.msg });
   } else next(err);
 };
 
-exports.handleServerErrors = (err, req, res, next) => {
-  if (err.code === "ENOENT") {
-    res.status(404).send({ msg: "Not Found" });
-  } else {
-    res.status(500).send({ msg: "Internal Server Error" });
-  }
+exports.handlePsqlErrors = (err, req, res, next) => {
+  // console.log(err.code, "<-- ended up in handlePsqlErrors");
+  if (err.code === "22P02") {
+    res.status(400).send({ msg: "Invalid input" });
+  } else next(err);
+};
+
+exports.handleServerErrors = (err, req, res) => {
+  // console.log(err, "<- ended up in handleServerErrors"
+  res.status(500).send({ msg: "Internal Server Error" });
 };
