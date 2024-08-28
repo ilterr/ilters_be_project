@@ -8,7 +8,7 @@ const endpoints = require("../endpoints.json");
 beforeEach(() => seed(data));
 afterAll(() => db.end());
 
-describe("/api/topics", () => {
+describe("GET /api/topics", () => {
   test("200: return an array of topic objects with two properties", () => {
     return request(app)
       .get("/api/topics")
@@ -32,7 +32,7 @@ describe("Error handling check", () => {
       });
   });
 });
-describe("/api", () => {
+describe("GET /api", () => {
   test("200: return documentation detailing my endpoints for the user", () => {
     return request(app)
       .get("/api")
@@ -42,7 +42,7 @@ describe("/api", () => {
       });
   });
 });
-describe("/api/articles/:article_id", () => {
+describe("GET /api/articles/:article_id", () => {
   test("200: return article object by it's id, with 8 correct properties", () => {
     return request(app)
       .get("/api/articles/1")
@@ -66,7 +66,7 @@ describe("Error handling for /api/articles/:article_id", () => {
       .get("/api/articles/notAnId")
       .expect(400)
       .then(({ body }) => {
-        expect(body.msg).toBe("Invalid input");
+        expect(body.msg).toBe("Invalid Request");
       });
   });
   test("404: Attempting to GET a resource by a valid ID that does not exist in the database", () => {
@@ -78,7 +78,7 @@ describe("Error handling for /api/articles/:article_id", () => {
       });
   });
 });
-describe("/api/articles", () => {
+describe("GET /api/articles", () => {
   test("200: returns an array of article objects with 8 properties", () => {
     return request(app)
       .get("/api/articles")
@@ -95,6 +95,51 @@ describe("/api/articles", () => {
           expect(typeof article.article_img_url).toBe("string");
           expect(typeof article.comment_count).toBe("string");
         });
+      });
+  });
+});
+describe("GET /api/articles/:article_id/comments", () => {
+  test("200: respond with all comments for an article", () => {
+    return request(app)
+      .get("/api/articles/1/comments")
+      .expect(200)
+      .then((response) => {
+        expect(response.body.comments.length).toBe(11);
+        response.body.comments.forEach((comment) => {
+          expect(typeof comment.comment_id).toBe("number");
+          expect(typeof comment.votes).toBe("number");
+          expect(typeof comment.created_at).toBe("string");
+          expect(typeof comment.author).toBe("string");
+          expect(typeof comment.body).toBe("string");
+          expect(typeof comment.article_id).toBe("number");
+        });
+      });
+  });
+  test("respond with comments ordered by most recent comment first", () => {
+    return request(app)
+      .get("/api/articles/1/comments")
+      .expect(200)
+      .then((response) => {
+        console.log(response.body.comments);
+        expect(response.body.comments).toBeSortedBy("created_at");
+      });
+  });
+});
+describe("Error handling for GET /api/articles/:article_id/comments", () => {
+  test("400:Attempting to GET comments by an invalid ID ", () => {
+    return request(app)
+      .get("/api/articles/notAnId/comments")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Invalid Request");
+      });
+  });
+  test("404: Attempting to GET comments by a valid ID that does not exist in the database", () => {
+    return request(app)
+      .get("/api/articles/12345789/comments")
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe("No comments found");
       });
   });
 });

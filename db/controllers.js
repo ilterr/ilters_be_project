@@ -1,9 +1,11 @@
 // const articles = require("./data/test-data/articles");
+const comments = require("./data/test-data/comments");
 const {
   selectTopics,
   readDataFile,
   getArticleById,
   selectArticles,
+  selectComments,
 } = require("./models");
 
 exports.getAllTopics = (req, res) => {
@@ -37,6 +39,17 @@ exports.getAllArticles = (req, res, next) => {
   selectArticles()
     .then((articles) => {
       res.status(200).send({ articles });
+    })
+    .catch((err) => {
+      next(err);
+    });
+};
+
+exports.getComments = (req, res, next) => {
+  const { article_id } = req.params;
+  selectComments(article_id)
+    .then((comments) => {
+      res.status(200).send({ comments });
     })
     .catch((err) => {
       next(err);
