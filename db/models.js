@@ -8,16 +8,18 @@ exports.selectTopics = () => {
 };
 
 exports.readDataFile = () => {
-  const filePath = `${__dirname}/../endpoints.json`;
+  const filePath = `${__dirname}/../endpoint.json`;
+  return fs.readFile(filePath, "utf8").then((fileData) => {
+    return JSON.parse(fileData);
+  });
+};
 
-  return fs
-    .readFile(filePath, "utf8")
-    .then((fileData) => {
-      return JSON.parse(fileData);
-    })
-    .catch((err) => {
-      if (err.code === "ENOENT") {
-        throw new Error("File not found");
-      }
+exports.getArticleById = (article_id) => {
+  return db
+    .query(`SELECT * FROM articles WHERE article_id = $1`, [article_id])
+    .then((data) => {
+      return data.rows;
     });
 };
+
+// if (err.code === "ENOENT"
