@@ -8,7 +8,7 @@ exports.selectTopics = () => {
 };
 
 exports.readDataFile = () => {
-  const filePath = `${__dirname}/../endpoint.json`;
+  const filePath = `${__dirname}/../endpoints.json`;
   return fs.readFile(filePath, "utf8").then((fileData) => {
     return JSON.parse(fileData);
   });
