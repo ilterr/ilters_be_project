@@ -1,5 +1,10 @@
 // const articles = require("./data/test-data/articles");
-const { selectTopics, readDataFile, getArticleById } = require("./models");
+const {
+  selectTopics,
+  readDataFile,
+  getArticleById,
+  selectArticles,
+} = require("./models");
 
 exports.getAllTopics = (req, res) => {
   selectTopics().then((topics) => {
@@ -22,6 +27,16 @@ exports.getArticle = (req, res, next) => {
   getArticleById(article_id)
     .then((article) => {
       res.status(200).send({ article });
+    })
+    .catch((err) => {
+      next(err);
+    });
+};
+
+exports.getAllArticles = (req, res, next) => {
+  selectArticles()
+    .then((articles) => {
+      res.status(200).send({ articles });
     })
     .catch((err) => {
       next(err);
