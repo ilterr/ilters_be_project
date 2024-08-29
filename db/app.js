@@ -13,8 +13,6 @@ const {
   handlePsqlErrors,
 } = require("./errors/index.js");
 
-const port = process.env.PORT || 9090;
-
 app.use(express.json());
 
 app.get("/api", getDocumentation);
