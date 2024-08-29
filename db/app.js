@@ -28,8 +28,9 @@ app.get("/api/articles/:article_id/comments", getComments);
 app.get("/api/*", (req, res) => {
   res.status(404).send({ msg: "Not Found" });
 });
+
 app.use(handleCustomErrors);
-app.use(handleServerErrors);
 app.use(handlePsqlErrors);
+app.use(handleServerErrors);
 
 module.exports = app;
