@@ -21,7 +21,7 @@ exports.getArticleById = (article_id) => {
       if (data.rows.length === 0) {
         return Promise.reject({ status: 404, msg: "Article not found" });
       }
-      return data.rows;
+      return data.rows[0];
     });
 };
 
@@ -39,15 +39,15 @@ exports.selectArticles = () => {
 };
 
 exports.selectComments = (article_id) => {
-  return db
-    .query(
-      `SELECT * FROM comments WHERE article_id = $1 ORDER BY created_at ASC`,
-      [article_id]
-    )
+  return exports
+    .getArticleById(article_id)
+    .then(() => {
+      return db.query(
+        `SELECT * FROM comments WHERE article_id = $1 ORDER BY created_at ASC`,
+        [article_id]
+      );
+    })
     .then((data) => {
-      if (data.rows.length === 0) {
-        return Promise.reject({ status: 404, msg: "No comments found" });
-      }
       return data.rows;
     });
 };

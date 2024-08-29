@@ -49,14 +49,15 @@ describe("GET /api/articles/:article_id", () => {
       .expect(200)
       .then((data) => {
         const articles = data.body.article;
-        expect(articles.length).toBe(1);
-        expect(articles[0]).toHaveProperty("title");
-        expect(articles[0]).toHaveProperty("article_id");
-        expect(articles[0]).toHaveProperty("body");
-        expect(articles[0]).toHaveProperty("topic");
-        expect(articles[0]).toHaveProperty("created_at");
-        expect(articles[0]).toHaveProperty("votes");
-        expect(articles[0]).toHaveProperty("article_img_url");
+        expect(articles.title).toBe("Living in the shadow of a great man");
+        expect(articles.article_id).toBe(1);
+        expect(articles.body).toBe("I find this existence challenging");
+        expect(articles.topic).toBe("mitch");
+        expect(articles.created_at).toBe("2020-07-09T20:11:00.000Z");
+        expect(articles.votes).toBe(100);
+        expect(articles.article_img_url).toBe(
+          "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700"
+        );
       });
   });
 });
@@ -123,6 +124,14 @@ describe("GET /api/articles/:article_id/comments", () => {
         expect(response.body.comments).toBeSortedBy("created_at");
       });
   });
+  test("respond with an empty array if article is valid but there are no comments", () => {
+    return request(app)
+      .get("/api/articles/8/comments")
+      .expect(200)
+      .then((response) => {
+        expect(response.body.comments).toEqual([]);
+      });
+  });
 });
 describe("Error handling for GET /api/articles/:article_id/comments", () => {
   test("400:Attempting to GET comments by an invalid ID ", () => {
@@ -138,7 +147,7 @@ describe("Error handling for GET /api/articles/:article_id/comments", () => {
       .get("/api/articles/12345789/comments")
       .expect(404)
       .then(({ body }) => {
-        expect(body.msg).toBe("No comments found");
+        expect(body.msg).toBe("Article not found");
       });
   });
 });
