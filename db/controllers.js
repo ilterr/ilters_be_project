@@ -7,6 +7,7 @@ const {
   selectArticles,
   selectComments,
   addCommentToDatabase,
+  amendArticleById,
 } = require("./models");
 
 exports.getAllTopics = (req, res) => {
@@ -61,8 +62,20 @@ exports.postComment = (req, res, next) => {
   const { article_id } = req.params;
   const { username, body } = req.body;
   addCommentToDatabase(article_id, username, body)
-    .then((newComment) => {
-      res.status(201).send({ comment: newComment });
+    .then((comment) => {
+      res.status(201).send({ comment });
+    })
+    .catch((err) => {
+      next(err);
+    });
+};
+
+exports.patchArticle = (req, res, next) => {
+  const { article_id } = req.params;
+  const { inc_votes } = req.body;
+  amendArticleById(article_id, inc_votes)
+    .then((article) => {
+      res.status(200).send({ article });
     })
     .catch((err) => {
       next(err);
