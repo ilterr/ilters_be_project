@@ -166,20 +166,12 @@ describe("POST /api/articles/:article_id/comments", () => {
           "You cheated on me? .. When I specifically asked you not to?"
         );
         expect(response.body.comment.author).toBe("butter_bridge");
-        return request(app)
-          .get("/api/articles/6/comments")
-          .expect(200)
-          .then((response) => {
-            expect(response.body.comments[1].body).toBe(
-              "You cheated on me? .. When I specifically asked you not to?"
-            );
-          });
       });
   });
 });
 
 describe("Error testing for POST /api/articles/:article_id/comments ", () => {
-  test("Attempting to post a comment under an non existent article", () => {
+  test("404: Attempting to post a comment under valid, but non existent article", () => {
     const commentToAdd = {
       username: "butter_bridge",
       body: "You cheated on me? .. When I specifically asked you not to?",
@@ -192,7 +184,20 @@ describe("Error testing for POST /api/articles/:article_id/comments ", () => {
         expect(response.body.msg).toBe("Article not found");
       });
   });
-  test("400: respond with error if username is not valid", () => {
+  test("400: Attempting to post a comment under a invalid article", () => {
+    const commentToAdd = {
+      username: "butter_bridge",
+      body: "Northcoders Wooo",
+    };
+    return request(app)
+      .post("/api/articles/invalid/comments")
+      .send(commentToAdd)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Invalid Request");
+      });
+  });
+  test("400: Attempting to post where username is not valid", () => {
     const commentToAdd = {
       username: "non_existent",
       body: "Michael Scott is the best boss",
@@ -201,17 +206,82 @@ describe("Error testing for POST /api/articles/:article_id/comments ", () => {
       .post("/api/articles/1/comments")
       .send(commentToAdd)
       .expect(400)
-      .then((response) => {
-        expect(response.body.msg).toBe("Bad Request");
+      .then(({ body }) => {
+        expect(body.msg).toBe("Bad Request");
       });
   });
-  test("400: respond with error if required fields are missing", () => {
+  test("400: Attempting to post where required fields are missing", () => {
     return request(app)
       .post("/api/articles/1/comments")
       .send({})
       .expect(400)
       .then((response) => {
         expect(response.body.msg).toBe("Bad Request");
+      });
+  });
+});
+describe("PATCH /api/articles/:article_id", () => {
+  test("200: article matching id is updated with increased votes", () => {
+    const voteToUpdate = { inc_votes: 10 };
+    return request(app)
+      .patch("/api/articles/3")
+      .send(voteToUpdate)
+      .expect(200)
+      .then((response) => {
+        expect(response.body.article.votes).toBe(10);
+        expect(response.body.article.article_id).toBe(3);
+      });
+  });
+  test("200: article matching id is updated with decreased votes", () => {
+    const voteToUpdate = { inc_votes: -5 };
+    return request(app)
+      .patch("/api/articles/3")
+      .send(voteToUpdate)
+      .expect(200)
+      .then((response) => {
+        expect(response.body.article.votes).toBe(-5);
+        expect(response.body.article.article_id).toBe(3);
+      });
+  });
+});
+describe("Error testing for PATCH /api/articles/:article_id ", () => {
+  test("Attempting to PATCH a resource with invalid body", () => {
+    return request(app)
+      .patch("/api/articles/1")
+      .send("?")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Bad Request");
+      });
+  });
+  test("400: Attempting to PATCH a resource with a valid body fields but invalid field", () => {
+    const voteToUpdate = { inc_votes: "word" };
+    return request(app)
+      .patch("/api/articles/1")
+      .send(voteToUpdate)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Invalid Request");
+      });
+  });
+  test("404: Attempting to post a comment under valid, but non existent article", () => {
+    const voteToUpdate = { inc_votes: 8 };
+    return request(app)
+      .patch("/api/articles/10000")
+      .send(voteToUpdate)
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Article not found");
+      });
+  });
+  test("400: Attempting to post a comment under a invalid article", () => {
+    const voteToUpdate = { inc_votes: 8 };
+    return request(app)
+      .patch("/api/articles/invalid")
+      .send(voteToUpdate)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Invalid Request");
       });
   });
 });

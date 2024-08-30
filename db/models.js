@@ -54,20 +54,31 @@ exports.selectComments = (article_id) => {
 };
 
 exports.addCommentToDatabase = (article_id, username, body) => {
-  if (!username || !body) {
-    return Promise.reject({ status: 400, msg: "Bad Request" });
-  } else
-    return exports
-      .getArticleById(article_id)
-      .then(() => {
-        return connection.query(
-          `INSERT INTO comments (article_id,     author, body, votes, created_at)
-          VALUES ($1, $2, $3, 0, NOW())
+  return exports
+    .getArticleById(article_id)
+    .then(() => {
+      return db.query(
+        `INSERT INTO comments (article_id,  author, body)
+          VALUES ($1, $2, $3)
           RETURNING *;`,
-          [article_id, username, body]
-        );
-      })
-      .then((comment) => {
-        return comment.rows[0];
-      });
+        [article_id, username, body]
+      );
+    })
+    .then((comment) => {
+      return comment.rows[0];
+    });
+};
+
+exports.amendArticleById = (article_id, inc_votes) => {
+  return exports
+    .getArticleById(article_id)
+    .then(() => {
+      return db.query(
+        `UPDATE articles SET votes = votes + $1 WHERE article_id = $2 RETURNING*;`,
+        [inc_votes, article_id]
+      );
+    })
+    .then((response) => {
+      return response.rows[0];
+    });
 };
