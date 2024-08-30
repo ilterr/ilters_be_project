@@ -1,3 +1,4 @@
+const connection = require("./connection");
 const db = require("./connection");
 const fs = require("fs/promises");
 
@@ -21,7 +22,7 @@ exports.getArticleById = (article_id) => {
       if (data.rows.length === 0) {
         return Promise.reject({ status: 404, msg: "Article not found" });
       }
-      return data.rows;
+      return data.rows[0];
     });
 };
 
@@ -39,15 +40,34 @@ exports.selectArticles = () => {
 };
 
 exports.selectComments = (article_id) => {
-  return db
-    .query(
-      `SELECT * FROM comments WHERE article_id = $1 ORDER BY created_at ASC`,
-      [article_id]
-    )
+  return exports
+    .getArticleById(article_id)
+    .then(() => {
+      return db.query(
+        `SELECT * FROM comments WHERE article_id = $1 ORDER BY created_at ASC`,
+        [article_id]
+      );
+    })
     .then((data) => {
-      if (data.rows.length === 0) {
-        return Promise.reject({ status: 404, msg: "No comments found" });
-      }
       return data.rows;
     });
+};
+
+exports.addCommentToDatabase = (article_id, username, body) => {
+  if (!username || !body) {
+    return Promise.reject({ status: 400, msg: "Bad Request" });
+  } else
+    return exports
+      .getArticleById(article_id)
+      .then(() => {
+        return connection.query(
+          `INSERT INTO comments (article_id,     author, body, votes, created_at)
+          VALUES ($1, $2, $3, 0, NOW())
+          RETURNING *;`,
+          [article_id, username, body]
+        );
+      })
+      .then((comment) => {
+        return comment.rows[0];
+      });
 };

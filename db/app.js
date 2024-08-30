@@ -6,6 +6,7 @@ const {
   getArticle,
   getAllArticles,
   getComments,
+  postComment,
 } = require("./controllers");
 const {
   handleCustomErrors,
@@ -24,6 +25,8 @@ app.get("/api/articles/:article_id", getArticle);
 app.get("/api/articles", getAllArticles);
 
 app.get("/api/articles/:article_id/comments", getComments);
+
+app.post("/api/articles/:article_id/comments", postComment);
 
 app.get("/api/*", (req, res) => {
   res.status(404).send({ msg: "Not Found" });
