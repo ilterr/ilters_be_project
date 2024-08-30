@@ -245,7 +245,7 @@ describe("PATCH /api/articles/:article_id", () => {
   });
 });
 describe("Error testing for PATCH /api/articles/:article_id ", () => {
-  test("Attempting to PATCH a resource with invalid body", () => {
+  test("400: Attempting to PATCH a resource with invalid body", () => {
     return request(app)
       .patch("/api/articles/1")
       .send("?")
@@ -286,7 +286,7 @@ describe("Error testing for PATCH /api/articles/:article_id ", () => {
   });
 });
 describe("DELETE /api/comments/:comment_id", () => {
-  test("delete the given comment by comment_id", () => {
+  test("204: delete the given comment by comment_id", () => {
     return request(app)
       .delete("/api/comments/3")
       .expect(204)
@@ -296,7 +296,7 @@ describe("DELETE /api/comments/:comment_id", () => {
   });
 });
 describe("Error Handling DELETE /api/comments/:comment_id", () => {
-  test("Attempting to DELETE a comment that does not exist", () => {
+  test("404: Attempting to DELETE a comment that does not exist", () => {
     return request(app)
       .delete("/api/comments/9000")
       .expect(404)
@@ -304,12 +304,28 @@ describe("Error Handling DELETE /api/comments/:comment_id", () => {
         expect(body.msg).toBe("Comment not found");
       });
   });
-  test("Attempting to DELETE a comment referenced by an invalid ID", () => {
+  test("400: Attempting to DELETE a comment referenced by an invalid ID", () => {
     return request(app)
       .delete("/api/comments/over9000")
       .expect(400)
       .then(({ body }) => {
         expect(body.msg).toBe("Invalid Request");
+      });
+  });
+});
+
+describe("CORE: GET /api/users", () => {
+  test("200: responds with an array of objects, each with 3 properties", () => {
+    return request(app)
+      .get("/api/users")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.users.length).toBe(4);
+        body.users.forEach((user) => {
+          expect(typeof user.username).toBe("string");
+          expect(typeof user.name).toBe("string");
+          expect(typeof user.avatar_url).toBe("string");
+        });
       });
   });
 });

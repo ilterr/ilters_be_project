@@ -94,3 +94,9 @@ exports.deleteCommentById = (comment_id) => {
       }
     });
 };
+
+exports.selectUsers = () => {
+  return db.query(`SELECT * FROM users`).then((userData) => {
+    return userData.rows;
+  });
+};
