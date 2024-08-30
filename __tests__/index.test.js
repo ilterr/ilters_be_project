@@ -285,3 +285,31 @@ describe("Error testing for PATCH /api/articles/:article_id ", () => {
       });
   });
 });
+describe("DELETE /api/comments/:comment_id", () => {
+  test("delete the given comment by comment_id", () => {
+    return request(app)
+      .delete("/api/comments/3")
+      .expect(204)
+      .then(({ res }) => {
+        expect(res.statusMessage).toBe("No Content");
+      });
+  });
+});
+describe("Error Handling DELETE /api/comments/:comment_id", () => {
+  test("Attempting to DELETE a comment that does not exist", () => {
+    return request(app)
+      .delete("/api/comments/9000")
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Comment not found");
+      });
+  });
+  test("Attempting to DELETE a comment referenced by an invalid ID", () => {
+    return request(app)
+      .delete("/api/comments/over9000")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Invalid Request");
+      });
+  });
+});
