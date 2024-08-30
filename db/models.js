@@ -1,3 +1,4 @@
+const connection = require("./connection");
 const db = require("./connection");
 const fs = require("fs/promises");
 
@@ -50,4 +51,23 @@ exports.selectComments = (article_id) => {
     .then((data) => {
       return data.rows;
     });
+};
+
+exports.addCommentToDatabase = (article_id, username, body) => {
+  if (!username || !body) {
+    return Promise.reject({ status: 400, msg: "Bad Request" });
+  } else
+    return exports
+      .getArticleById(article_id)
+      .then(() => {
+        return connection.query(
+          `INSERT INTO comments (article_id,     author, body, votes, created_at)
+          VALUES ($1, $2, $3, 0, NOW())
+          RETURNING *;`,
+          [article_id, username, body]
+        );
+      })
+      .then((comment) => {
+        return comment.rows[0];
+      });
 };

@@ -151,3 +151,67 @@ describe("Error handling for GET /api/articles/:article_id/comments", () => {
       });
   });
 });
+describe("POST /api/articles/:article_id/comments", () => {
+  test("201: respond with newly created comment and is retrievable with GET endpoint", () => {
+    const commentToAdd = {
+      username: "butter_bridge",
+      body: "You cheated on me? .. When I specifically asked you not to?",
+    };
+    return request(app)
+      .post("/api/articles/6/comments")
+      .send(commentToAdd)
+      .expect(201)
+      .then((response) => {
+        expect(response.body.comment.body).toBe(
+          "You cheated on me? .. When I specifically asked you not to?"
+        );
+        expect(response.body.comment.author).toBe("butter_bridge");
+        return request(app)
+          .get("/api/articles/6/comments")
+          .expect(200)
+          .then((response) => {
+            expect(response.body.comments[1].body).toBe(
+              "You cheated on me? .. When I specifically asked you not to?"
+            );
+          });
+      });
+  });
+});
+
+describe("Error testing for POST /api/articles/:article_id/comments ", () => {
+  test("Attempting to post a comment under an non existent article", () => {
+    const commentToAdd = {
+      username: "butter_bridge",
+      body: "You cheated on me? .. When I specifically asked you not to?",
+    };
+    return request(app)
+      .post("/api/articles/987654/comments")
+      .send(commentToAdd)
+      .expect(404)
+      .then((response) => {
+        expect(response.body.msg).toBe("Article not found");
+      });
+  });
+  test("400: respond with error if username is not valid", () => {
+    const commentToAdd = {
+      username: "non_existent",
+      body: "Michael Scott is the best boss",
+    };
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send(commentToAdd)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.msg).toBe("Bad Request");
+      });
+  });
+  test("400: respond with error if required fields are missing", () => {
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send({})
+      .expect(400)
+      .then((response) => {
+        expect(response.body.msg).toBe("Bad Request");
+      });
+  });
+});

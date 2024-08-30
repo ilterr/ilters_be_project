@@ -1,4 +1,4 @@
-// const articles = require("./data/test-data/articles");
+const articles = require("./data/test-data/articles");
 const comments = require("./data/test-data/comments");
 const {
   selectTopics,
@@ -6,6 +6,7 @@ const {
   getArticleById,
   selectArticles,
   selectComments,
+  addCommentToDatabase,
 } = require("./models");
 
 exports.getAllTopics = (req, res) => {
@@ -50,6 +51,18 @@ exports.getComments = (req, res, next) => {
   selectComments(article_id)
     .then((comments) => {
       res.status(200).send({ comments });
+    })
+    .catch((err) => {
+      next(err);
+    });
+};
+
+exports.postComment = (req, res, next) => {
+  const { article_id } = req.params;
+  const { username, body } = req.body;
+  addCommentToDatabase(article_id, username, body)
+    .then((newComment) => {
+      res.status(201).send({ comment: newComment });
     })
     .catch((err) => {
       next(err);
