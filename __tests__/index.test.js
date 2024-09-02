@@ -99,6 +99,66 @@ describe("GET /api/articles", () => {
       });
   });
 });
+describe("GET /api/articles QUERIES", () => {
+  test("default values for sort_by and order", () => {
+    return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+  test("sort_by sorts the articles by any valid column (article_id)", () => {
+    return request(app)
+      .get("/api/articles?sort_by=article_id")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles).toBeSortedBy("article_id", { descending: true });
+      });
+  });
+  test("sort_by sorts the articles by any valid column (topic)", () => {
+    return request(app)
+      .get("/api/articles?sort_by=topic")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles).toBeSortedBy("topic", { descending: true });
+      });
+  });
+  test("order, which can be set to asc", () => {
+    return request(app)
+      .get("/api/articles?sort_by=votes&order=asc")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles).toBeSortedBy("votes");
+      });
+  });
+  test("order, which can be set to desc", () => {
+    return request(app)
+      .get("/api/articles?sort_by=votes&order=desc")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles).toBeSortedBy("votes", { descending: true });
+      });
+  });
+});
+describe("Error Handling GET /api/articles QUERIES", () => {
+  test("Invalid sort_by query", () => {
+    return request(app)
+      .get("/api/articles?sort_by=invalid")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Invalid Column");
+      });
+  });
+  test("Invalid order query", () => {
+    return request(app)
+      .get("/api/articles?sort_by=votes&order=abc")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Invalid Request");
+      });
+  });
+});
 describe("GET /api/articles/:article_id/comments", () => {
   test("200: respond with all comments for an article", () => {
     return request(app)
