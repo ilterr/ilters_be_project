@@ -40,7 +40,8 @@ exports.getArticle = (req, res, next) => {
 };
 
 exports.getAllArticles = (req, res, next) => {
-  selectArticles()
+  const { sort_by, order } = req.query;
+  selectArticles(sort_by, order)
     .then((articles) => {
       res.status(200).send({ articles });
     })
