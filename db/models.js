@@ -26,17 +26,51 @@ exports.getArticleById = (article_id) => {
     });
 };
 
-exports.selectArticles = (sort_by = "created_at", order = "desc") => {
-  return db
-    .query(
-      `SELECT articles.author, articles.title, articles.article_id, articles.topic, articles.created_at, articles.votes, articles.article_img_url,
-      COUNT(comments.article_id) AS comment_count FROM articles LEFT JOIN  comments ON articles.article_id = comments.article_id GROUP BY articles.article_id ORDER BY ${sort_by} ${order.toUpperCase()}`
-    )
-    .then((data) => {
-      if (data.rows.length === 0) {
-        return Promise.reject({ status: 404, msg: "No articles found" });
-      } else return data.rows;
-    });
+exports.selectArticles = (sort_by = "created_at", order = "desc", topic) => {
+  const upperCaseOrder = order.toUpperCase();
+  const validSort = [
+    "author",
+    "title",
+    "article_id",
+    "topic",
+    "created_at",
+    "votes",
+    "comment_count",
+  ];
+  const validOrder = ["ASC", "DESC"];
+  const validTopic = ["mitch", "cats"];
+
+  if (!validSort.includes(sort_by)) {
+    return Promise.reject({ status: 400, msg: "Invalid Request" });
+  }
+
+  if (!validOrder.includes(upperCaseOrder)) {
+    return Promise.reject({ status: 400, msg: "Invalid Request" });
+  }
+
+  if (topic && !validTopic.includes(topic)) {
+    return Promise.reject({ status: 400, msg: "Invalid Request" });
+  }
+
+  let queryStr = `SELECT articles.author, articles.title, articles.article_id, articles.topic, articles.created_at, articles.votes, articles.article_img_url,
+  COUNT(comments.article_id) AS comment_count FROM articles LEFT JOIN  comments ON articles.article_id = comments.article_id`;
+
+  const queryValues = [];
+
+  if (topic) {
+    queryStr += ` WHERE articles.topic = $1`;
+    queryValues.push(topic);
+  }
+
+  queryStr += `
+  GROUP BY articles.article_id ORDER BY ${sort_by} ${upperCaseOrder}
+  `;
+
+  return db.query(queryStr, queryValues).then((data) => {
+    if (data.rows.length === 0) {
+      return Promise.reject({ status: 404, msg: "No articles found" });
+    } else return data.rows;
+  });
 };
 
 exports.selectComments = (article_id) => {
