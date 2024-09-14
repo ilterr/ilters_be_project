@@ -140,6 +140,26 @@ describe("GET /api/articles QUERIES", () => {
         expect(body.articles).toBeSortedBy("votes", { descending: true });
       });
   });
+  test("topic query filters the articles by topic value cats", () => {
+    return request(app)
+      .get("/api/articles?sort_by=created_at&order=desc&topic=cats")
+      .expect(200)
+      .then(({ body }) => {
+        body.articles.forEach((article) => {
+          expect(article.topic).toBe("cats");
+        });
+      });
+  });
+  test("topic query filters the articles by topic value mitch", () => {
+    return request(app)
+      .get("/api/articles?sort_by=created_at&order=desc&topic=mitch")
+      .expect(200)
+      .then(({ body }) => {
+        body.articles.forEach((article) => {
+          expect(article.topic).toBe("mitch");
+        });
+      });
+  });
 });
 describe("Error Handling GET /api/articles QUERIES", () => {
   test("Invalid sort_by query", () => {
@@ -147,12 +167,20 @@ describe("Error Handling GET /api/articles QUERIES", () => {
       .get("/api/articles?sort_by=invalid")
       .expect(400)
       .then(({ body }) => {
-        expect(body.msg).toBe("Invalid Column");
+        expect(body.msg).toBe("Invalid Request");
       });
   });
   test("Invalid order query", () => {
     return request(app)
       .get("/api/articles?sort_by=votes&order=abc")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Invalid Request");
+      });
+  });
+  test("Invalid topic query", () => {
+    return request(app)
+      .get("/api/articles?sort_by=created_at&order=desc&topic=invalid")
       .expect(400)
       .then(({ body }) => {
         expect(body.msg).toBe("Invalid Request");
