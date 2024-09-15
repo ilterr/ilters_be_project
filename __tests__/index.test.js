@@ -419,7 +419,7 @@ describe("GET /api/users", () => {
   });
 });
 
-describe.only("GET /api/users/:username", () => {
+describe("GET /api/users/:username", () => {
   test("200: responds with a user object with 3 properties", () => {
     return request(app)
       .get("/api/users/butter_bridge")
@@ -434,7 +434,7 @@ describe.only("GET /api/users/:username", () => {
   });
 });
 
-describe.only("Error handling GET /api/users/:username", () => {
+describe("Error handling GET /api/users/:username", () => {
   test("404: responds with 'User not found' if the username does not exist", () => {
     return request(app)
       .get("/api/users/does_not_exist")
