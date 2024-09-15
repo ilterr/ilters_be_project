@@ -117,5 +117,21 @@
         "avatar_url": "https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg"
       }
     ]
+  },
+  "PATCH /api/comments/:comment_id": {
+    "description": "update the votes on a comment given the comment's comment_id",
+    "queries": [],
+    "exampleResponse": [
+      {
+        "comment": {
+          "comment_id": 4,
+          "body": "I carry a log — yes. Is it funny to you? It is not to me.",
+          "article_id": 1,
+          "author": "icellusedkars",
+          "votes": -103,
+          "created_at": "2020-02-23T12:01:00.000Z"
+        }
+      }
+    ]
   }
 }

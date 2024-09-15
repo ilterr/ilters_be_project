@@ -30,13 +30,7 @@ exports.getArticleById = (article_id) => {
       WHERE 
         articles.article_id = $1
       GROUP BY 
-        articles.article_id,
-        articles.title, 
-        articles.article_id, 
-        articles.topic, 
-        articles.created_at, 
-        articles.votes, 
-        articles.article_img_url
+        articles.article_id     
     `,
       [article_id]
     )
@@ -174,5 +168,22 @@ exports.selectUserByName = (username) => {
         return Promise.reject({ status: 404, msg: "User not found" });
       }
       return userData.rows[0];
+    });
+};
+
+exports.patchCommentById = (comment_id, inc_votes) => {
+  if (typeof inc_votes !== "number") {
+    return Promise.reject({ status: 400, msg: "Invalid Request" });
+  }
+  return db
+    .query(
+      `UPDATE comments SET votes = votes + $1 WHERE comment_id = $2 RETURNING *`,
+      [inc_votes, comment_id]
+    )
+    .then((commentData) => {
+      if (commentData.rows.length === 0) {
+        return Promise.reject({ status: 404, msg: "Comment not found" });
+      }
+      return commentData.rows[0];
     });
 };

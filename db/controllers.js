@@ -11,6 +11,7 @@ const {
   deleteCommentById,
   selectUsers,
   selectUserByName,
+  patchCommentById,
 } = require("./models");
 
 exports.getAllTopics = (req, res) => {
@@ -112,6 +113,18 @@ exports.getUserByName = (req, res, next) => {
   selectUserByName(username)
     .then((user) => {
       res.status(200).send({ user });
+    })
+    .catch((err) => {
+      next(err);
+    });
+};
+
+exports.patchComment = (req, res, next) => {
+  const { comment_id } = req.params;
+  const { inc_votes } = req.body;
+  patchCommentById(comment_id, inc_votes)
+    .then((comment) => {
+      res.status(200).send({ comment });
     })
     .catch((err) => {
       next(err);

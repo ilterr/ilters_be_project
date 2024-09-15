@@ -316,9 +316,9 @@ describe("PATCH /api/articles/:article_id", () => {
       .patch("/api/articles/3")
       .send(voteToUpdate)
       .expect(200)
-      .then((response) => {
-        expect(response.body.article.votes).toBe(10);
-        expect(response.body.article.article_id).toBe(3);
+      .then(({ body }) => {
+        expect(body.article.votes).toBe(10);
+        expect(body.article.article_id).toBe(3);
       });
   });
   test("200: article matching id is updated with decreased votes", () => {
@@ -327,9 +327,9 @@ describe("PATCH /api/articles/:article_id", () => {
       .patch("/api/articles/3")
       .send(voteToUpdate)
       .expect(200)
-      .then((response) => {
-        expect(response.body.article.votes).toBe(-5);
-        expect(response.body.article.article_id).toBe(3);
+      .then(({ body }) => {
+        expect(body.article.votes).toBe(-5);
+        expect(body.article.article_id).toBe(3);
       });
   });
 });
@@ -441,6 +441,80 @@ describe("Error handling GET /api/users/:username", () => {
       .expect(404)
       .then(({ body }) => {
         expect(body.msg).toBe("User not found");
+      });
+  });
+});
+
+describe("PATCH /api/comments/:comment_id", () => {
+  test("200: add votes on a comment given the comment's comment_id and returns comment", () => {
+    const voteToUpdate = { inc_votes: 5 };
+    return request(app)
+      .patch("/api/comments/4")
+      .send(voteToUpdate)
+      .expect(200)
+      .then(({ body }) => {
+        console.log(body);
+        expect(body.comment.comment_id).toBe(4);
+        expect(body.comment.body).toBe(
+          " I carry a log — yes. Is it funny to you? It is not to me."
+        );
+        expect(body.comment.article_id).toBe(1);
+        expect(body.comment.author).toBe("icellusedkars");
+        expect(body.comment.votes).toBe(-95);
+      });
+  });
+  test("200: minus votes on a comment given the comment's comment_id and returns comment", () => {
+    const voteToUpdate = { inc_votes: -3 };
+    return request(app)
+      .patch("/api/comments/4")
+      .send(voteToUpdate)
+      .expect(200)
+      .then(({ body }) => {
+        console.log(body);
+        expect(body.comment.votes).toBe(-103);
+      });
+  });
+});
+
+describe("Error handling PATCH /api/comments/:comment_id", () => {
+  test("400: Attempting to PATCH a resource with a valid body fields but invalid field", () => {
+    const voteToUpdate = { inc_votes: "word" };
+    return request(app)
+      .patch("/api/comments/3")
+      .send(voteToUpdate)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Invalid Request");
+      });
+  });
+  test("400: Attempting to PATCH a resource with an invalid body field", () => {
+    const voteToUpdate = { votes: 2 };
+    return request(app)
+      .patch("/api/comments/3")
+      .send(voteToUpdate)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Invalid Request");
+      });
+  });
+  test("404: Attempting to post a comment under valid, but non existent comment", () => {
+    const voteToUpdate = { inc_votes: 8 };
+    return request(app)
+      .patch("/api/comments/123456789")
+      .send(voteToUpdate)
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Comment not found");
+      });
+  });
+  test("404: Attempting to post a comment under an invalid comment id", () => {
+    const voteToUpdate = { inc_votes: 8 };
+    return request(app)
+      .patch("/api/comments/abcd")
+      .send(voteToUpdate)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Invalid Request");
       });
   });
 });
