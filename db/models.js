@@ -1,4 +1,3 @@
-const connection = require("./connection");
 const db = require("./connection");
 const fs = require("fs/promises");
 
@@ -42,7 +41,8 @@ exports.getArticleById = (article_id) => {
       [article_id]
     )
     .then((data) => {
-      if (data.rows.length === 0) {
+      const [article] = data.rows;
+      if (!article) {
         return Promise.reject({ status: 404, msg: "Article not found" });
       }
       return data.rows[0];
