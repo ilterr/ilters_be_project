@@ -11,6 +11,7 @@ const {
   deleteComment,
   getAllUsers,
   getUserByName,
+  patchComment,
 } = require("./controllers");
 const {
   handleCustomErrors,
@@ -39,6 +40,8 @@ app.delete("/api/comments/:comment_id", deleteComment);
 app.get("/api/users", getAllUsers);
 
 app.get("/api/users/:username", getUserByName);
+
+app.patch("/api/comments/:comment_id", patchComment);
 
 app.get("/api/*", (req, res) => {
   res.status(404).send({ msg: "Not Found" });
