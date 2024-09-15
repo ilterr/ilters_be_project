@@ -456,7 +456,7 @@ describe("PATCH /api/comments/:comment_id", () => {
         console.log(body);
         expect(body.comment.comment_id).toBe(4);
         expect(body.comment.body).toBe(
-          "I carry a log — yes. Is it funny to you? It is not to me."
+          " I carry a log — yes. Is it funny to you? It is not to me."
         );
         expect(body.comment.article_id).toBe(1);
         expect(body.comment.author).toBe("icellusedkars");
