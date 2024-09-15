@@ -403,7 +403,7 @@ describe("Error Handling DELETE /api/comments/:comment_id", () => {
   });
 });
 
-describe("CORE: GET /api/users", () => {
+describe("GET /api/users", () => {
   test("200: responds with an array of objects, each with 3 properties", () => {
     return request(app)
       .get("/api/users")
@@ -415,6 +415,32 @@ describe("CORE: GET /api/users", () => {
           expect(typeof user.name).toBe("string");
           expect(typeof user.avatar_url).toBe("string");
         });
+      });
+  });
+});
+
+describe("GET /api/users/:username", () => {
+  test("200: responds with a user object with 3 properties", () => {
+    return request(app)
+      .get("/api/users/butter_bridge")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.user.username).toBe("butter_bridge");
+        expect(body.user.name).toBe("jonny");
+        expect(body.user.avatar_url).toBe(
+          "https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg"
+        );
+      });
+  });
+});
+
+describe("Error handling GET /api/users/:username", () => {
+  test("404: responds with 'User not found' if the username does not exist", () => {
+    return request(app)
+      .get("/api/users/does_not_exist")
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe("User not found");
       });
   });
 });
