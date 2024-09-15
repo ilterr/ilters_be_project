@@ -112,7 +112,7 @@ exports.selectComments = (article_id) => {
     });
 };
 
-exports.addCommentToDatabase = (article_id, username, body) => {
+exports.insertComment = (article_id, username, body) => {
   return exports
     .getArticleById(article_id)
     .then(() => {
@@ -128,7 +128,7 @@ exports.addCommentToDatabase = (article_id, username, body) => {
     });
 };
 
-exports.amendArticleById = (article_id, inc_votes) => {
+exports.updateArticleById = (article_id, inc_votes) => {
   return exports
     .getArticleById(article_id)
     .then(() => {
@@ -171,7 +171,7 @@ exports.selectUserByName = (username) => {
     });
 };
 
-exports.patchCommentById = (comment_id, inc_votes) => {
+exports.updateCommentById = (comment_id, inc_votes) => {
   if (typeof inc_votes !== "number") {
     return Promise.reject({ status: 400, msg: "Invalid Request" });
   }
@@ -185,5 +185,47 @@ exports.patchCommentById = (comment_id, inc_votes) => {
         return Promise.reject({ status: 404, msg: "Comment not found" });
       }
       return commentData.rows[0];
+    });
+};
+
+exports.insertArticle = (
+  author,
+  title,
+  body,
+  topic,
+  article_img_url = "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700"
+) => {
+  if (!author || !title || !body || !topic) {
+    return Promise.reject({ status: 400, msg: "Invalid Request" });
+  }
+  return db
+    .query(
+      `INSERT INTO 
+        articles (author, title, body, topic, article_img_url, created_at) 
+       VALUES 
+        ($1, $2, $3, $4, $5, NOW()) 
+       RETURNING *;`,
+      [author, title, body, topic, article_img_url]
+    )
+    .then((article) => {
+      const newArticle = article.rows[0];
+      return db.query(
+        `SELECT 
+        articles.*, 
+      COUNT
+        (comments.article_id)::INT AS comment_count
+      FROM 
+        articles 
+      LEFT JOIN 
+        comments ON articles.article_id = comments.article_id
+      WHERE 
+        articles.article_id = $1
+      GROUP BY 
+        articles.article_id;`,
+        [newArticle.article_id]
+      );
+    })
+    .then((response) => {
+      return response.rows[0];
     });
 };

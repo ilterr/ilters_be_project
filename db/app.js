@@ -12,6 +12,7 @@ const {
   getAllUsers,
   getUserByName,
   patchComment,
+  postArticle,
 } = require("./controllers");
 const {
   handleCustomErrors,
@@ -42,6 +43,8 @@ app.get("/api/users", getAllUsers);
 app.get("/api/users/:username", getUserByName);
 
 app.patch("/api/comments/:comment_id", patchComment);
+
+app.post("/api/articles", postArticle);
 
 app.get("/api/*", (req, res) => {
   res.status(404).send({ msg: "Not Found" });
