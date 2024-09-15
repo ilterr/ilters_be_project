@@ -133,5 +133,24 @@
         }
       }
     ]
+  },
+  "POST /api/articles": {
+    "description": "posts new article",
+    "queries": [],
+    "exampleResponse": [
+      {
+        "article": {
+          "article_id": 14,
+          "title": "Mitch wins gold!",
+          "topic": "mitch",
+          "author": "rogersop",
+          "body": "Mitch has taken the gold at this years annual egg & spoon race!",
+          "created_at": "2024-09-15T17:21:25.170Z",
+          "votes": 0,
+          "article_img_url": "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+          "comment_count": 0
+        }
+      }
+    ]
   }
 }
