@@ -194,13 +194,32 @@ exports.insertComment = (article_id, username, body) => {
     });
 };
 
-exports.updateArticleById = (article_id, inc_votes) => {
+exports.updateArticleById = (article_id, inc_votes, body) => {
+  if (!inc_votes && !body) {
+    return Promise.reject({ status: 400, msg: "Bad Request" });
+  }
+
+  const setClauses = [];
+  const queryValues = [];
+
+  if (inc_votes) {
+    queryValues.push(inc_votes);
+    setClauses.push(`votes = votes + $${queryValues.length}`);
+  }
+
+  if (body) {
+    queryValues.push(body);
+    setClauses.push(`body = $${queryValues.length}`);
+  }
+
+  queryValues.push(article_id);
+
   return exports
     .getArticleById(article_id)
     .then(() => {
       return db.query(
-        `UPDATE articles SET votes = votes + $1 WHERE article_id = $2 RETURNING *`,
-        [inc_votes, article_id]
+        `UPDATE articles SET ${setClauses.join(", ")} WHERE article_id = $${queryValues.length} RETURNING *`,
+        queryValues
       );
     })
     .then((response) => {

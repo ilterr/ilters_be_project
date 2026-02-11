@@ -510,6 +510,29 @@ describe("PATCH /api/articles/:article_id", () => {
         expect(body.article.article_id).toBe(3);
       });
   });
+  test("200: Article matching id is updated with new body", () => {
+    const bodyToUpdate = { body: "Updated article content" };
+    return request(app)
+      .patch("/api/articles/3")
+      .send(bodyToUpdate)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.article.body).toBe("Updated article content");
+        expect(body.article.article_id).toBe(3);
+      });
+  });
+  test("200: Article matching id is updated with new body and votes together", () => {
+    const articleToUpdate = { inc_votes: 5, body: "New content" };
+    return request(app)
+      .patch("/api/articles/3")
+      .send(articleToUpdate)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.article.body).toBe("New content");
+        expect(body.article.votes).toBe(5);
+        expect(body.article.article_id).toBe(3);
+      });
+  });
 });
 describe("Error testing for PATCH /api/articles/:article_id ", () => {
   test("400: Attempting to GET a resource when the request field is invalid", () => {

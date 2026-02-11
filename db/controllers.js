@@ -92,8 +92,8 @@ exports.postComment = (req, res, next) => {
 
 exports.patchArticle = (req, res, next) => {
   const { article_id } = req.params;
-  const { inc_votes } = req.body;
-  updateArticleById(article_id, inc_votes)
+  const { inc_votes, body } = req.body;
+  updateArticleById(article_id, inc_votes, body)
     .then((article) => {
       res.status(200).send({ article });
     })

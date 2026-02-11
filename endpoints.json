@@ -85,7 +85,7 @@
     ]
   },
   "PATCH /api/articles/:article_id": {
-    "description": "update an article vote field by article_id",
+    "description": "update an article's votes and/or body by article_id",
     "queries": [],
     "exampleResponse": [
       {
