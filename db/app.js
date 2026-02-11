@@ -3,6 +3,7 @@ const app = express();
 const cors = require("cors");
 const {
   getAllTopics,
+  postTopic,
   getDocumentation,
   getArticle,
   getAllArticles,
@@ -28,6 +29,8 @@ app.use(express.json());
 app.get("/api", getDocumentation);
 
 app.get("/api/topics", getAllTopics);
+
+app.post("/api/topics", postTopic);
 
 app.get("/api/articles/:article_id", getArticle);
 

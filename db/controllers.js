@@ -2,6 +2,7 @@ const articles = require("./data/test-data/articles");
 const comments = require("./data/test-data/comments");
 const {
   selectTopics,
+  insertTopic,
   readDataFile,
   getArticleById,
   selectArticles,
@@ -19,6 +20,17 @@ exports.getAllTopics = (req, res) => {
   selectTopics().then((topics) => {
     res.status(200).send({ topics });
   });
+};
+
+exports.postTopic = (req, res, next) => {
+  const { slug, description } = req.body;
+  insertTopic(slug, description)
+    .then((topic) => {
+      res.status(201).send({ topic });
+    })
+    .catch((err) => {
+      next(err);
+    });
 };
 
 exports.getDocumentation = (req, res, next) => {

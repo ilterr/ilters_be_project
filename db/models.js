@@ -7,6 +7,20 @@ exports.selectTopics = () => {
   });
 };
 
+exports.insertTopic = (slug, description) => {
+  if (!slug || !description) {
+    return Promise.reject({ status: 400, msg: "Invalid Request" });
+  }
+  return db
+    .query(
+      `INSERT INTO topics (slug, description) VALUES ($1, $2) RETURNING *;`,
+      [slug, description]
+    )
+    .then((topicData) => {
+      return topicData.rows[0];
+    });
+};
+
 exports.readDataFile = () => {
   const filePath = `${__dirname}/../endpoints.json`;
   return fs.readFile(filePath, "utf8").then((fileData) => {
@@ -55,7 +69,6 @@ exports.selectArticles = (sort_by = "created_at", order = "desc", topic, limit =
     "comment_count",
   ];
   const validOrder = ["ASC", "DESC"];
-  const validTopic = ["mitch", "cats"];
 
   const parsedLimit = Number(limit);
   const parsedPage = Number(p);
@@ -76,10 +89,6 @@ exports.selectArticles = (sort_by = "created_at", order = "desc", topic, limit =
     return Promise.reject({ status: 400, msg: "Invalid Request" });
   }
 
-  if (topic && !validTopic.includes(topic)) {
-    return Promise.reject({ status: 400, msg: "Invalid Request" });
-  }
-
   const queryValues = [];
   let whereClause = "";
 
@@ -88,36 +97,48 @@ exports.selectArticles = (sort_by = "created_at", order = "desc", topic, limit =
     queryValues.push(topic);
   }
 
-  const countQuery = `SELECT COUNT(*)::INT AS total_count FROM articles${whereClause}`;
+  const validateTopic = topic
+    ? db
+        .query(`SELECT * FROM topics WHERE slug = $1`, [topic])
+        .then((topicData) => {
+          if (topicData.rows.length === 0) {
+            return Promise.reject({ status: 404, msg: "Topic not found" });
+          }
+        })
+    : Promise.resolve();
 
-  return db.query(countQuery, queryValues).then((countData) => {
-    const total_count = countData.rows[0].total_count;
+  return validateTopic.then(() => {
+    const countQuery = `SELECT COUNT(*)::INT AS total_count FROM articles${whereClause}`;
 
-    if (total_count === 0) {
-      return Promise.reject({ status: 404, msg: "No articles found" });
-    }
+    return db.query(countQuery, queryValues).then((countData) => {
+      const total_count = countData.rows[0].total_count;
 
-    const offset = (parsedPage - 1) * parsedLimit;
-    const dataValues = [...queryValues];
-    const limitIdx = dataValues.length + 1;
-    const offsetIdx = dataValues.length + 2;
-    dataValues.push(parsedLimit, offset);
+      if (total_count === 0) {
+        return Promise.reject({ status: 404, msg: "No articles found" });
+      }
 
-    const queryStr = `
-    SELECT
-      articles.*,
-      COUNT(comments.article_id):: INT AS comment_count
-    FROM
-      articles
-    LEFT JOIN
-      comments
-    ON
-      articles.article_id = comments.article_id${whereClause}
-    GROUP BY articles.article_id ORDER BY ${sort_by} ${upperCaseOrder}
-    LIMIT $${limitIdx} OFFSET $${offsetIdx}`;
+      const offset = (parsedPage - 1) * parsedLimit;
+      const dataValues = [...queryValues];
+      const limitIdx = dataValues.length + 1;
+      const offsetIdx = dataValues.length + 2;
+      dataValues.push(parsedLimit, offset);
 
-    return db.query(queryStr, dataValues).then((data) => {
-      return { articles: data.rows, total_count };
+      const queryStr = `
+      SELECT
+        articles.*,
+        COUNT(comments.article_id):: INT AS comment_count
+      FROM
+        articles
+      LEFT JOIN
+        comments
+      ON
+        articles.article_id = comments.article_id${whereClause}
+      GROUP BY articles.article_id ORDER BY ${sort_by} ${upperCaseOrder}
+      LIMIT $${limitIdx} OFFSET $${offsetIdx}`;
+
+      return db.query(queryStr, dataValues).then((data) => {
+        return { articles: data.rows, total_count };
+      });
     });
   });
 };

@@ -22,6 +22,51 @@ describe("GET /api/topics", () => {
       });
   });
 });
+describe("POST /api/topics", () => {
+  test("201: Respond with newly created topic", () => {
+    const topicToAdd = {
+      slug: "coding",
+      description: "All things programming",
+    };
+    return request(app)
+      .post("/api/topics")
+      .send(topicToAdd)
+      .expect(201)
+      .then(({ body }) => {
+        expect(body.topic.slug).toBe("coding");
+        expect(body.topic.description).toBe("All things programming");
+      });
+  });
+});
+describe("Error testing for POST /api/topics", () => {
+  test("400: Attempting to POST a topic with missing slug", () => {
+    return request(app)
+      .post("/api/topics")
+      .send({ description: "missing slug" })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Invalid Request");
+      });
+  });
+  test("400: Attempting to POST a topic with missing description", () => {
+    return request(app)
+      .post("/api/topics")
+      .send({ slug: "coding" })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Invalid Request");
+      });
+  });
+  test("400: Attempting to POST a topic with a duplicate slug", () => {
+    return request(app)
+      .post("/api/topics")
+      .send({ slug: "mitch", description: "duplicate" })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Bad Request");
+      });
+  });
+});
 describe("Error testing for non existent endpoint", () => {
   test("404: Attempting to GET a resource when given a non existent endpoint", () => {
     return request(app)
@@ -180,12 +225,12 @@ describe("Error testing for GET /api/articles QUERIES", () => {
         expect(body.msg).toBe("Invalid Request");
       });
   });
-  test("400: Attempting to GET a resource by with an invalid topic query", () => {
+  test("404: Attempting to GET a resource by with a non-existent topic query", () => {
     return request(app)
       .get("/api/articles?sort_by=created_at&order=desc&topic=invalid")
-      .expect(400)
+      .expect(404)
       .then(({ body }) => {
-        expect(body.msg).toBe("Invalid Request");
+        expect(body.msg).toBe("Topic not found");
       });
   });
 });
