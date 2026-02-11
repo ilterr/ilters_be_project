@@ -43,7 +43,7 @@ exports.getArticleById = (article_id) => {
     });
 };
 
-exports.selectArticles = (sort_by = "created_at", order = "desc", topic) => {
+exports.selectArticles = (sort_by = "created_at", order = "desc", topic, limit = 10, p = 1) => {
   const upperCaseOrder = order.toUpperCase();
   const validSort = [
     "author",
@@ -57,6 +57,17 @@ exports.selectArticles = (sort_by = "created_at", order = "desc", topic) => {
   const validOrder = ["ASC", "DESC"];
   const validTopic = ["mitch", "cats"];
 
+  const parsedLimit = Number(limit);
+  const parsedPage = Number(p);
+
+  if (!Number.isInteger(parsedLimit) || parsedLimit < 1) {
+    return Promise.reject({ status: 400, msg: "Invalid Request" });
+  }
+
+  if (!Number.isInteger(parsedPage) || parsedPage < 1) {
+    return Promise.reject({ status: 400, msg: "Invalid Request" });
+  }
+
   if (!validSort.includes(sort_by)) {
     return Promise.reject({ status: 400, msg: "Invalid Request" });
   }
@@ -69,46 +80,80 @@ exports.selectArticles = (sort_by = "created_at", order = "desc", topic) => {
     return Promise.reject({ status: 400, msg: "Invalid Request" });
   }
 
-  let queryStr = `
-  SELECT 
-    articles.*, 
-    COUNT(comments.article_id):: INT AS comment_count 
-  FROM 
-    articles 
-  LEFT JOIN  
-    comments 
-  ON 
-    articles.article_id = comments.article_id`;
-
   const queryValues = [];
+  let whereClause = "";
 
   if (topic) {
-    queryStr += ` WHERE articles.topic = $1`;
+    whereClause = ` WHERE articles.topic = $1`;
     queryValues.push(topic);
   }
 
-  queryStr += `
-  GROUP BY articles.article_id ORDER BY ${sort_by} ${upperCaseOrder}
-  `;
+  const countQuery = `SELECT COUNT(*)::INT AS total_count FROM articles${whereClause}`;
 
-  return db.query(queryStr, queryValues).then((data) => {
-    if (data.rows.length === 0) {
+  return db.query(countQuery, queryValues).then((countData) => {
+    const total_count = countData.rows[0].total_count;
+
+    if (total_count === 0) {
       return Promise.reject({ status: 404, msg: "No articles found" });
-    } else return data.rows;
+    }
+
+    const offset = (parsedPage - 1) * parsedLimit;
+    const dataValues = [...queryValues];
+    const limitIdx = dataValues.length + 1;
+    const offsetIdx = dataValues.length + 2;
+    dataValues.push(parsedLimit, offset);
+
+    const queryStr = `
+    SELECT
+      articles.*,
+      COUNT(comments.article_id):: INT AS comment_count
+    FROM
+      articles
+    LEFT JOIN
+      comments
+    ON
+      articles.article_id = comments.article_id${whereClause}
+    GROUP BY articles.article_id ORDER BY ${sort_by} ${upperCaseOrder}
+    LIMIT $${limitIdx} OFFSET $${offsetIdx}`;
+
+    return db.query(queryStr, dataValues).then((data) => {
+      return { articles: data.rows, total_count };
+    });
   });
 };
 
-exports.selectComments = (article_id) => {
+exports.selectComments = (article_id, limit = 10, p = 1) => {
+  const parsedLimit = Number(limit);
+  const parsedPage = Number(p);
+
+  if (!Number.isInteger(parsedLimit) || parsedLimit < 1) {
+    return Promise.reject({ status: 400, msg: "Invalid Request" });
+  }
+
+  if (!Number.isInteger(parsedPage) || parsedPage < 1) {
+    return Promise.reject({ status: 400, msg: "Invalid Request" });
+  }
+
+  const offset = (parsedPage - 1) * parsedLimit;
+
   return exports
     .getArticleById(article_id)
     .then(() => {
       return db.query(
-        `SELECT * FROM comments WHERE article_id = $1 ORDER BY created_at ASC`,
+        `SELECT COUNT(*)::INT AS total_count FROM comments WHERE article_id = $1`,
         [article_id]
       );
     })
-    .then((data) => {
-      return data.rows;
+    .then((countData) => {
+      const total_count = countData.rows[0].total_count;
+      return db
+        .query(
+          `SELECT * FROM comments WHERE article_id = $1 ORDER BY created_at ASC LIMIT $2 OFFSET $3`,
+          [article_id, parsedLimit, offset]
+        )
+        .then((data) => {
+          return { comments: data.rows, total_count };
+        });
     });
 };
 

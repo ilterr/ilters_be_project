@@ -81,12 +81,13 @@ describe("Error testing for /api/articles/:article_id", () => {
   });
 });
 describe("GET /api/articles", () => {
-  test("200: Returns an array of article objects with 8 properties", () => {
+  test("200: Returns an array of article objects with 8 properties, defaults to limit 10", () => {
     return request(app)
       .get("/api/articles")
       .expect(200)
       .then((response) => {
-        expect(response.body.articles.length).toBe(13);
+        expect(response.body.articles.length).toBe(10);
+        expect(response.body.total_count).toBe(13);
         response.body.articles.forEach((article) => {
           expect(typeof article.author).toBe("string");
           expect(typeof article.title).toBe("string");
@@ -188,13 +189,98 @@ describe("Error testing for GET /api/articles QUERIES", () => {
       });
   });
 });
+describe("GET /api/articles PAGINATION", () => {
+  test("200: accepts limit query to control number of articles returned", () => {
+    return request(app)
+      .get("/api/articles?limit=5")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles.length).toBe(5);
+        expect(body.total_count).toBe(13);
+      });
+  });
+  test("200: accepts p query to select the page of results", () => {
+    return request(app)
+      .get("/api/articles?limit=5&p=2")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles.length).toBe(5);
+        expect(body.total_count).toBe(13);
+      });
+  });
+  test("200: last page returns remaining articles", () => {
+    return request(app)
+      .get("/api/articles?limit=5&p=3")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles.length).toBe(3);
+        expect(body.total_count).toBe(13);
+      });
+  });
+  test("200: page beyond results returns empty array with total_count", () => {
+    return request(app)
+      .get("/api/articles?limit=5&p=100")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles).toEqual([]);
+        expect(body.total_count).toBe(13);
+      });
+  });
+  test("200: pagination works with topic filter", () => {
+    return request(app)
+      .get("/api/articles?topic=mitch&limit=5&p=1")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles.length).toBe(5);
+        expect(body.total_count).toBe(12);
+        body.articles.forEach((article) => {
+          expect(article.topic).toBe("mitch");
+        });
+      });
+  });
+});
+describe("Error testing for GET /api/articles PAGINATION", () => {
+  test("400: Attempting to GET a resource with an invalid limit", () => {
+    return request(app)
+      .get("/api/articles?limit=abc")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Invalid Request");
+      });
+  });
+  test("400: Attempting to GET a resource with a negative limit", () => {
+    return request(app)
+      .get("/api/articles?limit=-5")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Invalid Request");
+      });
+  });
+  test("400: Attempting to GET a resource with an invalid page", () => {
+    return request(app)
+      .get("/api/articles?p=abc")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Invalid Request");
+      });
+  });
+  test("400: Attempting to GET a resource with a negative page", () => {
+    return request(app)
+      .get("/api/articles?p=-1")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Invalid Request");
+      });
+  });
+});
 describe("GET /api/articles/:article_id/comments", () => {
-  test("200: Responds with all comments for an article", () => {
+  test("200: Responds with comments for an article, defaults to limit 10", () => {
     return request(app)
       .get("/api/articles/1/comments")
       .expect(200)
       .then((response) => {
-        expect(response.body.comments.length).toBe(11);
+        expect(response.body.comments.length).toBe(10);
+        expect(response.body.total_count).toBe(11);
         response.body.comments.forEach((comment) => {
           expect(typeof comment.comment_id).toBe("number");
           expect(typeof comment.votes).toBe("number");
@@ -237,6 +323,53 @@ describe("Error testing for GET /api/articles/:article_id/comments", () => {
       .expect(404)
       .then(({ body }) => {
         expect(body.msg).toBe("Article not found");
+      });
+  });
+});
+describe("GET /api/articles/:article_id/comments PAGINATION", () => {
+  test("200: accepts limit query to control number of comments returned", () => {
+    return request(app)
+      .get("/api/articles/1/comments?limit=5")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.comments.length).toBe(5);
+        expect(body.total_count).toBe(11);
+      });
+  });
+  test("200: accepts p query to select the page of results", () => {
+    return request(app)
+      .get("/api/articles/1/comments?limit=5&p=2")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.comments.length).toBe(5);
+        expect(body.total_count).toBe(11);
+      });
+  });
+  test("200: last page returns remaining comments", () => {
+    return request(app)
+      .get("/api/articles/1/comments?limit=5&p=3")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.comments.length).toBe(1);
+        expect(body.total_count).toBe(11);
+      });
+  });
+});
+describe("Error testing for GET /api/articles/:article_id/comments PAGINATION", () => {
+  test("400: Attempting to GET a resource with an invalid limit", () => {
+    return request(app)
+      .get("/api/articles/1/comments?limit=abc")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Invalid Request");
+      });
+  });
+  test("400: Attempting to GET a resource with an invalid page", () => {
+    return request(app)
+      .get("/api/articles/1/comments?p=abc")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Invalid Request");
       });
   });
 });
