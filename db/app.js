@@ -10,6 +10,7 @@ const {
   getComments,
   postComment,
   patchArticle,
+  deleteArticle,
   deleteComment,
   getAllUsers,
   getUserByName,
@@ -41,6 +42,8 @@ app.get("/api/articles/:article_id/comments", getComments);
 app.post("/api/articles/:article_id/comments", postComment);
 
 app.patch("/api/articles/:article_id", patchArticle);
+
+app.delete("/api/articles/:article_id", deleteArticle);
 
 app.delete("/api/comments/:comment_id", deleteComment);
 

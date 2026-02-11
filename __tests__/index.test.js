@@ -581,6 +581,35 @@ describe("Error testing for DELETE /api/comments/:comment_id", () => {
   });
 });
 
+describe("DELETE /api/articles/:article_id", () => {
+  test("204: Delete the given article by article_id", () => {
+    return request(app)
+      .delete("/api/articles/1")
+      .expect(204)
+      .then(({ res }) => {
+        expect(res.statusMessage).toBe("No Content");
+      });
+  });
+});
+describe("Error testing for DELETE /api/articles/:article_id", () => {
+  test("404: Attempting to GET a resource when article does not exist", () => {
+    return request(app)
+      .delete("/api/articles/9000")
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Article not found");
+      });
+  });
+  test("400: Attempting to GET a resource when article is referenced by an invalid ID", () => {
+    return request(app)
+      .delete("/api/articles/notAnId")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Invalid Request");
+      });
+  });
+});
+
 describe("GET /api/users", () => {
   test("200: Responds with an array of objects, each with 3 properties", () => {
     return request(app)

@@ -220,6 +220,23 @@ exports.deleteCommentById = (comment_id) => {
     });
 };
 
+exports.deleteArticleById = (article_id) => {
+  return exports
+    .getArticleById(article_id)
+    .then(() => {
+      return db.query(
+        `DELETE FROM comments WHERE article_id = $1`,
+        [article_id]
+      );
+    })
+    .then(() => {
+      return db.query(
+        `DELETE FROM articles WHERE article_id = $1`,
+        [article_id]
+      );
+    });
+};
+
 exports.selectUsers = () => {
   return db.query(`SELECT * FROM users`).then((usersData) => {
     return usersData.rows;
